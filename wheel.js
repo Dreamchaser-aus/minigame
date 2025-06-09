@@ -1,4 +1,4 @@
-// Updated wheel.js to ensure the arrow always points to the winning slice
+// Enhanced wheel.js with deceleration effect as wheel stops
 const canvas = document.getElementById("wheelcanvas");
 const ctx = canvas.getContext("2d");
 const spinBtn = document.getElementById("spin");
@@ -54,7 +54,7 @@ function getWeightedPrizeIndex() {
   const rand = Math.random() * total;
   let sum = 0;
   for (let i = 0; i < prizes.length; i++) {
-    sum += p.weight;
+    sum += prizes[i].weight;
     if (rand < sum) return i;
   }
 }
@@ -63,6 +63,7 @@ let spinAngleStart = 0;
 let spinTime = 0;
 let spinTimeTotal = 0;
 let targetIndex = 0;
+let currentSpinSpeed = 0;
 
 function rotateWheel() {
   spinTime += 30;
@@ -70,8 +71,13 @@ function rotateWheel() {
     stopRotateWheel();
     return;
   }
-  const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
-  startAngle += (spinAngle * Math.PI / 180);
+
+  const progress = spinTime / spinTimeTotal;
+  const easedAngle = easeOut(progress) * spinAngleStart;
+  const angleDelta = easedAngle - currentSpinSpeed;
+  currentSpinSpeed = easedAngle;
+
+  startAngle += (angleDelta * Math.PI / 180);
   drawWheel();
   spinTimeout = setTimeout(rotateWheel, 30);
 }
@@ -94,10 +100,8 @@ function stopRotateWheel() {
   }
 }
 
-function easeOut(t, b, c, d) {
-  const ts = (t /= d) * t;
-  const tc = ts * t;
-  return b + c * (tc + -3 * ts + 3 * t);
+function easeOut(t) {
+  return 1 - Math.pow(1 - t, 3);
 }
 
 spinBtn.addEventListener("click", () => {
@@ -108,7 +112,8 @@ spinBtn.addEventListener("click", () => {
   const finalDegree = 360 - (targetIndex * degreesPerSlice) - degreesPerSlice / 2;
   spinAngleStart = (360 * extraSpins) + finalDegree;
   spinTime = 0;
-  spinTimeTotal = Math.random() * 3000 + 3000;
+  spinTimeTotal = 3000 + Math.random() * 1000;
+  currentSpinSpeed = 0;
   rotateWheel();
 });
 
