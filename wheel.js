@@ -1,3 +1,4 @@
+// Updated wheel.js to ensure the arrow always points to the winning slice
 const canvas = document.getElementById("wheelcanvas");
 const ctx = canvas.getContext("2d");
 const spinBtn = document.getElementById("spin");
@@ -29,19 +30,13 @@ function drawWheel() {
   for (let i = 0; i < prizes.length; i++) {
     const angle = startAngle + i * arc;
 
-    // Highlight winning sector
-    if (i === highlightIndex) {
-      ctx.fillStyle = "#ff9800";
-    } else {
-      ctx.fillStyle = i % 2 === 0 ? "#4caf50" : "#2196f3";
-    }
+    ctx.fillStyle = i === highlightIndex ? "#ff9800" : (i % 2 === 0 ? "#4caf50" : "#2196f3");
 
     ctx.beginPath();
     ctx.arc(150, 150, outerR, angle, angle + arc, false);
     ctx.arc(150, 150, innerR, angle + arc, angle, true);
     ctx.fill();
 
-    // Draw text
     ctx.save();
     ctx.fillStyle = "#fff";
     ctx.translate(
@@ -59,7 +54,7 @@ function getWeightedPrizeIndex() {
   const rand = Math.random() * total;
   let sum = 0;
   for (let i = 0; i < prizes.length; i++) {
-    sum += prizes[i].weight;
+    sum += p.weight;
     if (rand < sum) return i;
   }
 }
