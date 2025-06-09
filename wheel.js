@@ -19,6 +19,7 @@ function drawWheel() {
     ctx.arc(150, 150, 150, segmentAngle * i + rotation, segmentAngle * (i + 1) + rotation);
     ctx.lineTo(150, 150);
     ctx.fill();
+
     ctx.save();
     ctx.translate(150, 150);
     ctx.rotate(segmentAngle * (i + 0.5) + rotation);
@@ -37,9 +38,10 @@ spinBtn.addEventListener('click', () => {
   isSpinning = true;
 
   const targetIndex = Math.floor(Math.random() * segments.length);
-  const baseRotation = 10 * 2 * Math.PI;
+
+  const baseRounds = 10; // 转动几圈
   const targetAngle = (segments.length - targetIndex) * segmentAngle - segmentAngle / 2;
-  const finalRotation = baseRotation + targetAngle;
+  const finalRotation = baseRounds * 2 * Math.PI + targetAngle;
 
   const duration = 4000;
   const frameRate = 1000 / 60;
@@ -49,12 +51,13 @@ spinBtn.addEventListener('click', () => {
   const startRotation = rotation;
   const deltaRotation = finalRotation;
 
-  const animate = () => {
+  function animate() {
     frame++;
     const progress = frame / totalFrames;
-    const easedProgress = 1 - Math.pow(1 - progress, 3);
+    const easedProgress = 1 - Math.pow(1 - progress, 3); // 缓动函数
     rotation = startRotation + deltaRotation * easedProgress;
     drawWheel();
+
     if (frame < totalFrames) {
       requestAnimationFrame(animate);
     } else {
@@ -62,7 +65,7 @@ spinBtn.addEventListener('click', () => {
       const result = segments[targetIndex];
       resultDiv.textContent = `🎉 ${result}!`;
     }
-  };
+  }
 
   animate();
 });
