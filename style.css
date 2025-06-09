@@ -1,0 +1,31 @@
+
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #1e1e1e;
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  margin-top: 30px;
+}
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+#spin {
+  padding: 15px 30px;
+  font-size: 18px;
+  margin-top: 20px;
+  cursor: pointer;
+  background-color: #ff9800;
+  border: none;
+  border-radius: 8px;
+  color: white;
+}
+#result {
+  margin-top: 20px;
+  font-size: 20px;
+  color: #4caf50;
+}
