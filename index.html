@@ -1,16 +1,92 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lucky Wheel (Telegram)</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lucky Wheel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, #001f3f, #000);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      padding: 20px;
+      background-color: rgba(0,0,0,0.4);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      max-width: 95vw;
+      position: relative;
+    }
+
+    canvas {
+      width: 320px;
+      height: 320px;
+      max-width: 90vw;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      background: #111;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 20px solid #ffeb3b;
+      z-index: 2;
+    }
+
+    #spin {
+      margin-top: 20px;
+      padding: 14px 40px;
+      font-size: 18px;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    #spin:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 198, 255, 0.6);
+    }
+
+    #result {
+      margin-top: 25px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ffc3;
+      text-shadow: 0 0 10px #00ffc3;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
+    <div class="pointer"></div>
     <canvas id="wheelcanvas" width="300" height="300"></canvas>
-    <button id="spin">SPIN</button>
+    <button id="spin">🎯 SPIN NOW</button>
     <div id="result"></div>
   </div>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
