@@ -1,120 +1,68 @@
-// Enhanced wheel.js with deceleration effect as wheel stops
-const canvas = document.getElementById("wheelcanvas");
-const ctx = canvas.getContext("2d");
-const spinBtn = document.getElementById("spin");
-const resultDiv = document.getElementById("result");
+const canvas = document.getElementById('wheelcanvas');
+const ctx = canvas.getContext('2d');
 
-const prizes = [
-  { label: "🎁 10 Token", weight: 25 },
-  { label: "🔥 50 Token", weight: 10 },
-  { label: "😢 No Luck", weight: 40 },
-  { label: "🎉 Jackpot", weight: 5 },
-  { label: "💰 5 Token", weight: 20 }
-];
+const segments = ["Jackpot", "500", "Try Again", "100", "250", "Thanks", "750", "50"];
+const colors = ["#e74c3c", "#3498db", "#2ecc71", "#f1c40f", "#e67e22", "#9b59b6", "#1abc9c", "#34495e"];
+const spinBtn = document.getElementById('spin');
+const resultDiv = document.getElementById('result');
 
-let startAngle = 0;
-const arc = Math.PI * 2 / prizes.length;
-let spinTimeout = null;
-let highlightIndex = -1;
+const segmentAngle = 2 * Math.PI / segments.length;
+let rotation = 0;
+let isSpinning = false;
 
 function drawWheel() {
-  const outerR = 130;
-  const innerR = 75;
-  const textR = 100;
-
-  ctx.clearRect(0, 0, 300, 300);
-  ctx.strokeStyle = "#fff";
-  ctx.lineWidth = 2;
-  ctx.font = "14px Inter";
-
-  for (let i = 0; i < prizes.length; i++) {
-    const angle = startAngle + i * arc;
-
-    ctx.fillStyle = i === highlightIndex ? "#ff9800" : (i % 2 === 0 ? "#4caf50" : "#2196f3");
-
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < segments.length; i++) {
     ctx.beginPath();
-    ctx.arc(150, 150, outerR, angle, angle + arc, false);
-    ctx.arc(150, 150, innerR, angle + arc, angle, true);
+    ctx.fillStyle = colors[i];
+    ctx.moveTo(150, 150);
+    ctx.arc(150, 150, 150, segmentAngle * i + rotation, segmentAngle * (i + 1) + rotation);
+    ctx.lineTo(150, 150);
     ctx.fill();
-
     ctx.save();
+    ctx.translate(150, 150);
+    ctx.rotate(segmentAngle * (i + 0.5) + rotation);
+    ctx.textAlign = "right";
     ctx.fillStyle = "#fff";
-    ctx.translate(
-      150 + Math.cos(angle + arc / 2) * textR,
-      150 + Math.sin(angle + arc / 2) * textR
-    );
-    ctx.rotate(angle + arc / 2 + Math.PI / 2);
-    ctx.fillText(prizes[i].label, -ctx.measureText(prizes[i].label).width / 2, 0);
+    ctx.font = "bold 16px Inter";
+    ctx.fillText(segments[i], 140, 10);
     ctx.restore();
   }
 }
 
-function getWeightedPrizeIndex() {
-  const total = prizes.reduce((acc, p) => acc + p.weight, 0);
-  const rand = Math.random() * total;
-  let sum = 0;
-  for (let i = 0; i < prizes.length; i++) {
-    sum += prizes[i].weight;
-    if (rand < sum) return i;
-  }
-}
-
-let spinAngleStart = 0;
-let spinTime = 0;
-let spinTimeTotal = 0;
-let targetIndex = 0;
-let currentSpinSpeed = 0;
-
-function rotateWheel() {
-  spinTime += 30;
-  if (spinTime >= spinTimeTotal) {
-    stopRotateWheel();
-    return;
-  }
-
-  const progress = spinTime / spinTimeTotal;
-  const easedAngle = easeOut(progress) * spinAngleStart;
-  const angleDelta = easedAngle - currentSpinSpeed;
-  currentSpinSpeed = easedAngle;
-
-  startAngle += (angleDelta * Math.PI / 180);
-  drawWheel();
-  spinTimeout = setTimeout(rotateWheel, 30);
-}
-
-function stopRotateWheel() {
-  clearTimeout(spinTimeout);
-
-  const degreesPerSlice = 360 / prizes.length;
-  const finalDegree = 360 - (targetIndex * degreesPerSlice) - degreesPerSlice / 2;
-
-  startAngle = (finalDegree * Math.PI / 180) % (Math.PI * 2);
-  highlightIndex = targetIndex;
-  drawWheel();
-
-  const prizeText = prizes[targetIndex].label;
-  resultDiv.innerText = "🎉 You won: " + prizeText;
-
-  if (window.Telegram && Telegram.WebApp) {
-    Telegram.WebApp.sendData(JSON.stringify({ result: prizeText }));
-  }
-}
-
-function easeOut(t) {
-  return 1 - Math.pow(1 - t, 3);
-}
-
-spinBtn.addEventListener("click", () => {
-  targetIndex = getWeightedPrizeIndex();
-  highlightIndex = -1;
-  const extraSpins = 6;
-  const degreesPerSlice = 360 / prizes.length;
-  const finalDegree = 360 - (targetIndex * degreesPerSlice) - degreesPerSlice / 2;
-  spinAngleStart = (360 * extraSpins) + finalDegree;
-  spinTime = 0;
-  spinTimeTotal = 3000 + Math.random() * 1000;
-  currentSpinSpeed = 0;
-  rotateWheel();
-});
-
 drawWheel();
+
+spinBtn.addEventListener('click', () => {
+  if (isSpinning) return;
+  isSpinning = true;
+
+  const targetIndex = Math.floor(Math.random() * segments.length);
+  const baseRotation = 10 * 2 * Math.PI;
+  const targetAngle = (segments.length - targetIndex) * segmentAngle - segmentAngle / 2;
+  const finalRotation = baseRotation + targetAngle;
+
+  const duration = 4000;
+  const frameRate = 1000 / 60;
+  const totalFrames = duration / frameRate;
+  let frame = 0;
+
+  const startRotation = rotation;
+  const deltaRotation = finalRotation;
+
+  const animate = () => {
+    frame++;
+    const progress = frame / totalFrames;
+    const easedProgress = 1 - Math.pow(1 - progress, 3);
+    rotation = startRotation + deltaRotation * easedProgress;
+    drawWheel();
+    if (frame < totalFrames) {
+      requestAnimationFrame(animate);
+    } else {
+      isSpinning = false;
+      const result = segments[targetIndex];
+      resultDiv.textContent = `🎉 ${result}!`;
+    }
+  };
+
+  animate();
+});
