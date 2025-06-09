@@ -1,4 +1,4 @@
-
+// Optimized wheel.js with pointer-accurate alignment and visual smoothing
 const canvas = document.getElementById("wheelcanvas");
 const ctx = canvas.getContext("2d");
 const spinBtn = document.getElementById("spin");
@@ -13,32 +13,34 @@ const prizes = [
 ];
 
 let startAngle = 0;
-let arc = Math.PI * 2 / prizes.length;
+const arc = Math.PI * 2 / prizes.length;
 let spinTimeout = null;
 
 function drawWheel() {
-  const outsideRadius = 130;
-  const textRadius = 100;
-  const insideRadius = 75;
+  const outerR = 130;
+  const innerR = 75;
+  const textR = 100;
 
   ctx.clearRect(0, 0, 300, 300);
-  ctx.strokeStyle = "white";
+  ctx.strokeStyle = "#fff";
   ctx.lineWidth = 2;
-  ctx.font = "14px Arial";
+  ctx.font = "14px Inter";
 
   for (let i = 0; i < prizes.length; i++) {
-    let angle = startAngle + i * arc;
-    ctx.fillStyle = i % 2 === 0 ? "#f44336" : "#4caf50";
+    const angle = startAngle + i * arc;
+    ctx.fillStyle = i % 2 === 0 ? "#4caf50" : "#2196f3";
 
     ctx.beginPath();
-    ctx.arc(150, 150, outsideRadius, angle, angle + arc, false);
-    ctx.arc(150, 150, insideRadius, angle + arc, angle, true);
+    ctx.arc(150, 150, outerR, angle, angle + arc, false);
+    ctx.arc(150, 150, innerR, angle + arc, angle, true);
     ctx.fill();
 
     ctx.save();
-    ctx.fillStyle = "white";
-    ctx.translate(150 + Math.cos(angle + arc / 2) * textRadius,
-                  150 + Math.sin(angle + arc / 2) * textRadius);
+    ctx.fillStyle = "#fff";
+    ctx.translate(
+      150 + Math.cos(angle + arc / 2) * textR,
+      150 + Math.sin(angle + arc / 2) * textR
+    );
     ctx.rotate(angle + arc / 2 + Math.PI / 2);
     ctx.fillText(prizes[i].label, -ctx.measureText(prizes[i].label).width / 2, 0);
     ctx.restore();
@@ -46,12 +48,12 @@ function drawWheel() {
 }
 
 function getWeightedPrizeIndex() {
-  const totalWeight = prizes.reduce((acc, p) => acc + p.weight, 0);
-  const random = Math.random() * totalWeight;
+  const total = prizes.reduce((acc, p) => acc + p.weight, 0);
+  const rand = Math.random() * total;
   let sum = 0;
   for (let i = 0; i < prizes.length; i++) {
     sum += prizes[i].weight;
-    if (random < sum) return i;
+    if (rand < sum) return i;
   }
 }
 
@@ -66,7 +68,7 @@ function rotateWheel() {
     stopRotateWheel();
     return;
   }
-  let spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+  const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
   startAngle += (spinAngle * Math.PI / 180);
   drawWheel();
   spinTimeout = setTimeout(rotateWheel, 30);
@@ -74,33 +76,37 @@ function rotateWheel() {
 
 function stopRotateWheel() {
   clearTimeout(spinTimeout);
+
   const degreesPerSlice = 360 / prizes.length;
-  const finalDegree = 360 - (targetIndex * degreesPerSlice) + (degreesPerSlice / 2);
-  startAngle = (finalDegree * Math.PI / 180);
+  const finalDegree = 360 - (targetIndex * degreesPerSlice) - degreesPerSlice / 2;
+
+  // Ensure final rotation angle lines up with pointer
+  startAngle = (finalDegree * Math.PI / 180) % (Math.PI * 2);
   drawWheel();
+
   const prizeText = prizes[targetIndex].label;
   resultDiv.innerText = "🎉 You won: " + prizeText;
 
-  // 回传至 Telegram
+  // Send result back to Telegram WebApp
   if (window.Telegram.WebApp) {
     Telegram.WebApp.sendData(JSON.stringify({ result: prizeText }));
   }
 }
 
 function easeOut(t, b, c, d) {
-  let ts = (t /= d) * t;
-  let tc = ts * t;
+  const ts = (t /= d) * t;
+  const tc = ts * t;
   return b + c * (tc + -3 * ts + 3 * t);
 }
 
 spinBtn.addEventListener("click", () => {
   targetIndex = getWeightedPrizeIndex();
-  const extraSpins = 5;
+  const extraSpins = 6; // Full rotations for visual effect
   const degreesPerSlice = 360 / prizes.length;
-  const finalDegree = 360 - (targetIndex * degreesPerSlice) + (degreesPerSlice / 2);
+  const finalDegree = 360 - (targetIndex * degreesPerSlice) - degreesPerSlice / 2;
   spinAngleStart = (360 * extraSpins) + finalDegree;
   spinTime = 0;
-  spinTimeTotal = Math.random() * 3000 + 4000;
+  spinTimeTotal = Math.random() * 3000 + 3000;
   rotateWheel();
 });
 
